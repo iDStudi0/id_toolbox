@@ -1,0 +1,32 @@
+{
+	"name": "id_toolbox",
+	"description": "Shared dev tooling for iDStudio FiveM TypeScript resources.",
+	"version": "1.0.0",
+	"license": "MIT",
+	"private": true,
+	"type": "module",
+	"bin": {
+		"fivem-build": "./bin/fivem-build.ts"
+	},
+	"files": [
+		"bin",
+		"biome",
+		"tsconfig",
+		"biome-manifest.json"
+	],
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"check:ci": "biome ci .",
+		"check": "biome check --write .",
+		"lint": "biome lint .",
+		"format": "biome format --write ."
+	},
+	"peerDependencies": {
+		"@biomejs/biome": "^2.6.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.6.2",
+		"@types/bun": "^1.4.3",
+		"typescript": "^7.0.2"
+	}
+}
