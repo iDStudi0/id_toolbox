@@ -30,12 +30,13 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 ```json
 "devDependencies": {
 	"@biomejs/biome": "^2.6.2",
+	"@types/bun": "^1.4.3",
 	"id_toolbox": "github:iDStudi0/id_toolbox#v1.0.0",
 	"typescript": "^7.0.2"
 }
 ```
 
-`@biomejs/biome` (≥ 2.6) et `typescript` restent des dépendances de chaque projet.
+`@biomejs/biome` (≥ 2.6) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
 
 Deux règles valent pour tous les projets :
 - **tsconfig** : étendre par chemin, `./node_modules/id_toolbox/tsconfig/<preset>.json`, jamais par nom de package. Bun ignore sans erreur un `extends` comme `id_toolbox/tsconfig/…` et perdrait par exemple les décorateurs de `nest`.
