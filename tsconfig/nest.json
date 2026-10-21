@@ -1,0 +1,7 @@
+{
+	"extends": "./bun.json",
+	"compilerOptions": {
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
+	}
+}
