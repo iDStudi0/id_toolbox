@@ -68,7 +68,7 @@ Scripts communs :
 {
 	"extends": "./node_modules/id_toolbox/tsconfig/fivem.json",
 	"compilerOptions": {
-		"types": ["node", "@citizenfx/server"],
+		"types": ["node", "bun", "@citizenfx/server"],
 		"paths": {
 			"@/*": ["./src/*"]
 		}
