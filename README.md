@@ -11,6 +11,7 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 | Ressource FiveM         | `fivem`                                | `base`          | `fivem-build` |
 | Serveur Bun / Elysia    | `bun`                                  | `base`          | Bun           |
 | Serveur NestJS sous Bun | `nest`                                 | `base` + `nest` | Bun           |
+| Bot Discord (id_node)   | `bot`                                  | `base`          | Bun           |
 | Site Vite + React       | `web` (src) + `bun` (`vite.config.ts`) | `base`          | `vite build`  |
 | Site Next.js            | `web`                                  | `base`          | `next build`  |
 
@@ -21,6 +22,7 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 | `fivem` | FXServer, Node 22                   | ES2024                    |                               |
 | `bun`   | Bun 1.4                             | ESNext                    |                               |
 | `nest`  | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
+| `bot`   | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
 | `web`   | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
 
 `web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16.
@@ -118,6 +120,12 @@ Scripts :
 ```
 
 `configs/nest` coupe deux règles qui cassent ou gênent NestJS. `useImportType` transformerait les imports injectés en `import type` : la metadata disparaît et l'injection de dépendances casse. `noUnusedFunctionParameters` signale à tort les paramètres décorés (`@Inject() private readonly x`). TypeScript couvre déjà les deux cas, avec `verbatimModuleSyntax` et `noUnusedParameters`.
+
+### Bot Discord (id_node)
+
+`tsconfig.json` : comme Elysia, avec `bot.json` à la place de `bun.json`.
+
+`bot` ajoute à `nest` `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
 
 ### Site Vite + React
 

@@ -1,0 +1,7 @@
+{
+	"extends": "./nest.json",
+	"compilerOptions": {
+		"exactOptionalPropertyTypes": true,
+		"noPropertyAccessFromIndexSignature": true
+	}
+}
