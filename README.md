@@ -41,7 +41,7 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 `@biomejs/biome` (≥ 2.6) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
 
 Deux règles valent pour tous les projets :
-- **tsconfig** : étendre par chemin, `./node_modules/id_toolbox/tsconfig/<preset>.json`, jamais par nom de package. Bun ignore sans erreur un `extends` comme `id_toolbox/tsconfig/…` et perdrait par exemple les décorateurs de `nest`.
+- **tsconfig** : étendre par chemin, `./node_modules/id_toolbox/tsconfig/<preset>.json`, jamais par nom de package. Bun ignore sans erreur un `extends` comme `id_toolbox/tsconfig/…` et perdrait par exemple les décorateurs de `nest`. Au runtime, Bun ne suit pas non plus un `extends` enchaîné à l'intérieur de `node_modules` : un preset qui a besoin d'options au runtime (décorateurs) les déclare lui-même au lieu de les hériter.
 - **`types` et `paths`** restent dans le projet : ils dépendent de ses paquets et de son arborescence.
 
 `biome.json`, identique partout sauf NestJS :
@@ -125,7 +125,7 @@ Scripts :
 
 `tsconfig.json` : comme Elysia, avec `bot.json` à la place de `bun.json`.
 
-`bot` ajoute à `nest` `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
+`bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
 
 ### Site Vite + React
 
