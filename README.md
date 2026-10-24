@@ -221,7 +221,7 @@ Au premier `next dev`, Next peut ajouter des options ou des entrées d'`include`
 
 Workflows réutilisables et action, appelés avec le même tag que la devDependency :
 
-- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact. Le secret optionnel `NPM_TOKEN` authentifie `bun install` auprès de GitHub Packages.
+- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact. `bun install` s'authentifie auprès de GitHub Packages avec le `GITHUB_TOKEN` : chaque package privé `@idstudi0` doit donner l'accès en lecture aux repos qui l'installent (_Package settings → Manage Actions access_), et le job appelant accorde `packages: read`.
 - `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
 - `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages avec le `GITHUB_TOKEN`.
 - `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet.
@@ -247,10 +247,9 @@ jobs:
     uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
     permissions:
       contents: read
+      packages: read
     with:
       build: true
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   workflows-lint:
     uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.0.0
@@ -279,6 +278,7 @@ jobs:
     uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
     permissions:
       contents: read
+      packages: read
 
   release:
     needs: checks
@@ -297,6 +297,7 @@ jobs:
     uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
     permissions:
       contents: read
+      packages: read
     with:
       build: true
 
