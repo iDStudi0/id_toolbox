@@ -59,10 +59,12 @@ Deux règles valent pour tous les projets :
 Scripts communs :
 
 ```json
-"typecheck": "tsc --noEmit",
-"check": "biome check --write .",
-"check:ci": "biome ci ."
+"typecheck": "bun check",
+"quality": "biome ci .",
+"quality:fix": "biome check --write ."
 ```
+
+`quality` vérifie sans rien écrire (lint, format et tri des imports, comme en CI), `quality:fix` corrige ce qui peut l'être. Les tests passent par `bun test`, sans script. Pas de script `check`, `fmt`, `test` ni `ci` : un script `check` ou `fmt` remplace en silence la commande Bun du même nom (`bun check` lancerait Biome au lieu du typecheck), et `bun test` ou `bun ci` ignorent le leur. `build` reste, car Vite, Next et les plateformes de déploiement l'attendent, mais `bun build` lance le bundler de Bun : les scripts se lancent toujours avec `bun run <script>`.
 
 ## Par type de projet
 
@@ -186,11 +188,11 @@ Deux contextes : le code navigateur (`web`) et `vite.config.ts`, exécuté par B
 }
 ```
 
-Scripts : `tsc -b` à la place de `tsc --noEmit`, pour vérifier les deux contextes.
+Scripts : `bun check -b` à la place de `bun check`, pour vérifier les deux contextes.
 
 ```json
-"typecheck": "tsc -b",
-"build": "tsc -b && vite build"
+"typecheck": "bun check -b",
+"build": "bun check -b && vite build"
 ```
 
 ### Site Next.js
@@ -234,14 +236,14 @@ Biome (`configs/base`) :
 
 ## Mettre à jour un projet
 
-Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`), puis `bun install`, `bun run typecheck` et `bun run check`.
+Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`), puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
 
 ## Développer le toolbox
 
 ```sh
 bun install
 bun run typecheck
-bun run check
+bun run quality:fix
 ```
 
 Publier une version : mettre à jour `version` dans `package.json`, committer, puis pousser un tag `vX.Y.Z`.

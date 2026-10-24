@@ -15,11 +15,9 @@
 		"biome-manifest.json"
 	],
 	"scripts": {
-		"typecheck": "tsc --noEmit",
-		"check:ci": "biome ci .",
-		"check": "biome check --write .",
-		"lint": "biome lint .",
-		"format": "biome format --write ."
+		"typecheck": "bun check",
+		"quality": "biome ci .",
+		"quality:fix": "biome check --write ."
 	},
 	"peerDependencies": {
 		"@biomejs/biome": "^2.6.3"

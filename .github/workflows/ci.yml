@@ -43,7 +43,7 @@ jobs:
 
       - name: Lint & format
         if: ${{ !cancelled() }}
-        run: bun run check:ci
+        run: bun run quality
 
       - name: Typecheck
         if: ${{ !cancelled() }}
