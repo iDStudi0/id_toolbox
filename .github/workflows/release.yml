@@ -10,44 +10,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+
   release:
-    runs-on: ubuntu-latest
-
-    timeout-minutes: 15
-
+    needs: checks
+    uses: ./.github/workflows/github-release.yml
     permissions:
       contents: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Check tag matches package.json version
-        run: |
-          expected="v$(jq -r .version package.json)"
-          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ($expected)."
-            exit 1
-          fi
-
-      - name: Setup Bun
-        id: setup-bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: .bun-version
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint & format
-        run: bun run quality
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes

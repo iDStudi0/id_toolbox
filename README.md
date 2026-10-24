@@ -217,6 +217,65 @@ Au premier `next dev`, Next peut ajouter des options ou des entrées d'`include`
 
 > **À vérifier :** `typescript@7` n'expose plus l'API JS que `next build` utilise pour son typecheck et la vérification du tsconfig. Si `next build` échoue avec TS 7, mets `"typescript": "^6"` dans le projet Next.
 
+## CI
+
+Deux workflows réutilisables, appelés avec le même tag que la devDependency :
+
+- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality` et `typecheck` sont actives par défaut, `test` (`bun test`) et `build` (`bun run build`) non : `bun test` échoue s'il ne trouve aucun fichier de test.
+- `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
+
+`.github/workflows/ci.yml` :
+
+```yaml
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
+    permissions:
+      contents: read
+    with:
+      test: true
+      build: true
+```
+
+`.github/workflows/release.yml` :
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
+    permissions:
+      contents: read
+
+  release:
+    needs: checks
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.0.0
+    permissions:
+      contents: write
+```
+
+Les `permissions` du job appelant plafonnent celles du workflow appelé : sans `contents: write`, la release échoue.
+
 ## Ce que la config impose
 
 TypeScript (`base.json`) :
@@ -236,7 +295,7 @@ Biome (`configs/base`) :
 
 ## Mettre à jour un projet
 
-Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`), puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
+Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`) et dans les `uses:` des workflows, puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
 
 ## Développer le toolbox
 

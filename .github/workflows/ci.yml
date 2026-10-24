@@ -10,41 +10,6 @@ concurrency:
 
 jobs:
   checks:
-    name: Lint & typecheck
-    runs-on: ubuntu-latest
-
-    timeout-minutes: 15
-
+    uses: ./.github/workflows/checks.yml
     permissions:
       contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup bun
-        id: setup-bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: .bun-version
-
-      - name: Restore bun install cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ steps.setup-bun.outputs.bun-version }}-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-${{ steps.setup-bun.outputs.bun-version }}-
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint & format
-        if: ${{ !cancelled() }}
-        run: bun run quality
-
-      - name: Typecheck
-        if: ${{ !cancelled() }}
-        run: bun run typecheck
