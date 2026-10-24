@@ -1,6 +1,6 @@
 # id_toolbox
 
-Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources FiveM, sites React (Vite, Next.js) et serveurs Bun (Elysia, NestJS). Une seule source pour la config Biome, les tsconfig et le build FiveM.
+Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources FiveM, sites React (Vite, Next.js) et serveurs Bun (Elysia, NestJS). Une seule source pour la config Biome, les tsconfig, le build FiveM et les workflows CI.
 
 Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est chargé par FXServer ni par un navigateur. Le package ne sert qu'au moment du dev et du build.
 
@@ -16,36 +16,18 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 | Site Vite + React       | `web` (src) + `bun` (`vite.config.ts`) | `base`          | `vite build`  |
 | Site Next.js            | `web`                                  | `base`          | `next build`  |
 
-Les presets tsconfig, tous construits sur `tsconfig/base.json` :
-
-| Preset         | Environnement                       | `lib`                     | En plus                       |
-| -------------- | ----------------------------------- | ------------------------- | ----------------------------- |
-| `fivem-server` | FXServer, `node_version '22'`       | ES2024                    |                               |
-| `fivem-client` | client FiveM, V8 9.3 sans Node      | ES2022                    |                               |
-| `fivem-nui`    | CEF de FiveM, Chromium 144          | ES2025, DOM, DOM.Iterable | `web`                         |
-| `bun`          | Bun 1.4                             | ESNext                    |                               |
-| `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
-| `bot`          | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
-| `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
-
-`web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16. `fivem-nui` n'a pas cette contrainte : le NUI ne tourne que dans le Chromium embarqué par FiveM (`vendor/cef/cef_build_name.txt` dans citizenfx/fivem), indépendant du V8 des scripts client.
-
 ## Installation
 
 ```json
 "devDependencies": {
-	"@biomejs/biome": "^2.6.2",
-	"@types/bun": "^1.4.3",
-	"id_toolbox": "github:iDStudi0/id_toolbox#v1.0.0",
+	"@biomejs/biome": "^2.6.3",
+	"@types/bun": "^1.4.4",
+	"id_toolbox": "github:iDStudi0/id_toolbox#v2.0.0",
 	"typescript": "^7.0.2"
 }
 ```
 
-`@biomejs/biome` (≥ 2.6) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
-
-Deux règles valent pour tous les projets :
-- **tsconfig** : étendre par chemin, `./node_modules/id_toolbox/tsconfig/<preset>.json`, jamais par nom de package. Bun ignore sans erreur un `extends` comme `id_toolbox/tsconfig/…` et perdrait par exemple les décorateurs de `nest`. Au runtime, Bun ne suit pas non plus un `extends` enchaîné à l'intérieur de `node_modules` : un preset qui a besoin d'options au runtime (décorateurs) les déclare lui-même au lieu de les hériter.
-- **`types` et `paths`** restent dans le projet : ils dépendent de ses paquets et de son arborescence.
+`@biomejs/biome` (≥ 2.6.3, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
 
 `biome.json`, identique partout sauf NestJS :
 
@@ -64,11 +46,19 @@ Scripts communs :
 "quality:fix": "biome check --write ."
 ```
 
-`quality` vérifie sans rien écrire (lint, format et tri des imports, comme en CI), `quality:fix` corrige ce qui peut l'être. Les tests passent par `bun test`, sans script. Pas de script `check`, `fmt`, `test` ni `ci` : un script `check` ou `fmt` remplace en silence la commande Bun du même nom (`bun check` lancerait Biome au lieu du typecheck), et `bun test` ou `bun ci` ignorent le leur. `build` reste, car Vite, Next et les plateformes de déploiement l'attendent, mais `bun build` lance le bundler de Bun : les scripts se lancent toujours avec `bun run <script>`.
+`quality` vérifie sans rien écrire (lint, format et tri des imports, comme en CI), `quality:fix` corrige ce qui peut l'être. Les tests passent par `bun test`, sans script.
+
+## Règles communes
+
+- **tsconfig** : étendre par chemin, `./node_modules/id_toolbox/tsconfig/<preset>.json`, jamais par nom de package. Bun ignore sans erreur un `extends` comme `id_toolbox/tsconfig/…` et perdrait par exemple les décorateurs de `nest`. Au runtime, Bun ne suit pas non plus un `extends` enchaîné à l'intérieur de `node_modules` : un preset qui a besoin d'options au runtime (décorateurs) les déclare lui-même au lieu de les hériter.
+- **`types` et `paths`** restent dans le projet : ils dépendent de ses paquets et de son arborescence.
+- **Noms de scripts** : pas de script `check`, `fmt`, `test` ni `ci`. Un script `check` ou `fmt` remplace en silence la commande Bun du même nom (`bun check` lancerait Biome au lieu du typecheck), et `bun test` ou `bun ci` ignorent le leur. `build` reste, car Vite, Next et les plateformes de déploiement l'attendent, mais `bun build` lance le bundler de Bun : les scripts se lancent toujours avec `bun run <script>`.
 
 ## Par type de projet
 
 ### Ressource FiveM
+
+En plus des dépendances communes : `@citizenfx/server` et/ou `@citizenfx/client`.
 
 `tsconfig.json` :
 
@@ -108,6 +98,10 @@ Le tsconfig client étend `fivem-client.json` avec `"types": ["@citizenfx/client
 
 `fivem-server` suppose Node 22 : le `fxmanifest.lua` doit déclarer `node_version '22'`, sinon FXServer lance Node 16. `fivem-client` vise le V8 9.3 du client : API jusqu'à ES2022, syntaxe ES2021 (les blocs `static {}` de classe n'existent pas encore).
 
+### UI NUI FiveM
+
+Comme un site Vite + React, avec `fivem-nui.json` à la place de `web.json` dans `tsconfig.app.json`.
+
 ### Serveur Bun / Elysia
 
 `tsconfig.json` :
@@ -144,8 +138,6 @@ Le tsconfig client étend `fivem-client.json` avec `"types": ["@citizenfx/client
 
 `tsconfig.json` : comme Elysia, avec `bot.json` à la place de `bun.json`.
 
-`bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
-
 ### Site Vite + React
 
 Deux contextes : le code navigateur (`web`) et `vite.config.ts`, exécuté par Bun ou Node (`bun`).
@@ -165,7 +157,6 @@ Deux contextes : le code navigateur (`web`) et `vite.config.ts`, exécuté par B
 {
 	"extends": "./node_modules/id_toolbox/tsconfig/web.json",
 	"compilerOptions": {
-		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
 		"types": ["vite/client"],
 		"paths": {
 			"@/*": ["./src/*"]
@@ -181,18 +172,16 @@ Deux contextes : le code navigateur (`web`) et `vite.config.ts`, exécuté par B
 {
 	"extends": "./node_modules/id_toolbox/tsconfig/bun.json",
 	"compilerOptions": {
-		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
 		"types": ["bun"]
 	},
 	"include": ["vite.config.ts"]
 }
 ```
 
-Scripts : `bun check -b` à la place de `bun check`, pour vérifier les deux contextes.
+Scripts : `bun check` voit que `tsconfig.json` n'a pas de fichiers et vérifie les projets référencés, comme `tsc -b`.
 
 ```json
-"typecheck": "bun check -b",
-"build": "bun check -b && vite build"
+"build": "bun run typecheck && vite build"
 ```
 
 ### Site Next.js
@@ -215,19 +204,62 @@ Scripts : `bun check -b` à la place de `bun check`, pour vérifier les deux con
 
 Au premier `next dev`, Next peut ajouter des options ou des entrées d'`include` dans ce fichier : c'est attendu, garde-les.
 
-> **À vérifier :** `typescript@7` n'expose plus l'API JS que `next build` utilise pour son typecheck et la vérification du tsconfig. Si `next build` échoue avec TS 7, mets `"typescript": "^6"` dans le projet Next.
+## Ce que la config impose
+
+Les presets tsconfig, tous construits sur `tsconfig/base.json` :
+
+| Preset         | Environnement                       | `lib`                     | En plus                       |
+| -------------- | ----------------------------------- | ------------------------- | ----------------------------- |
+| `fivem-server` | FXServer, `node_version '22'`       | ES2024                    |                               |
+| `fivem-client` | client FiveM, V8 9.3 sans Node      | ES2022                    |                               |
+| `fivem-nui`    | CEF de FiveM, Chromium 144          | ES2025, DOM, DOM.Iterable | `web`                         |
+| `bun`          | Bun 1.4                             | ESNext                    |                               |
+| `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
+| `bot`          | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
+| `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
+
+`web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16. `fivem-nui` n'a pas cette contrainte : le NUI ne tourne que dans le Chromium embarqué par FiveM (`vendor/cef/cef_build_name.txt` dans citizenfx/fivem), indépendant du V8 des scripts client.
+
+`bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
+
+TypeScript (`base.json`) :
+- `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, code inatteignable en erreur.
+- `noUncheckedIndexedAccess` : `arr[i]` et `record[key]` sont typés `T | undefined`.
+- `noImplicitOverride` : le mot-clé `override` est obligatoire quand une méthode redéfinit celle d'un parent.
+- `verbatimModuleSyntax` : un import utilisé seulement comme type s'écrit `import type`.
+- `allowImportingTsExtensions` : les imports peuvent finir en `.ts`.
+- `noEmit` : TypeScript ne fait que vérifier, ce sont Bun, Vite ou Next qui buildent.
+
+Biome (`configs/base`) :
+- Indentation en tabulations (largeur 4), lignes de 200 caractères, YAML en 2 espaces.
+- Imports triés automatiquement.
+- Syntaxe Tailwind (`@theme`, `@apply`…) acceptée dans le CSS.
+- `.gitignore` respecté, `dist/` ignoré.
+- Les règles React et Next s'activent toutes seules quand ces dépendances sont dans le `package.json`.
 
 ## CI
 
 Workflows réutilisables et action, appelés avec le même tag que la devDependency :
 
-- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact. `bun install` s'authentifie auprès de GitHub Packages avec le `GITHUB_TOKEN` : chaque package privé `@idstudi0` doit donner l'accès en lecture aux repos qui l'installent (_Package settings → Manage Actions access_), et le job appelant accorde `packages: read`.
+- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact.
 - `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
-- `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages avec le `GITHUB_TOKEN`.
-- `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet.
+- `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages.
+- `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet. Il lit la config du projet : `.github/zizmor.yml` (copier celui d'id_toolbox) et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels.
 - `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`).
 
-Le scope `@idstudi0` reste déclaré dans le `.npmrc` du projet (`@idstudi0:registry=https://npm.pkg.github.com`) : les workflows n'ajoutent que le token, dans `~/.npmrc`.
+Les `permissions` du job appelant plafonnent celles du workflow appelé : chaque exemple ci-dessous donne le minimum nécessaire.
+
+### GitHub Packages
+
+Les workflows s'authentifient avec le `GITHUB_TOKEN`, en ajoutant le token dans `~/.npmrc`. Le scope reste déclaré dans le `.npmrc` du projet :
+
+```
+@idstudi0:registry=https://npm.pkg.github.com
+```
+
+Chaque package privé `@idstudi0` doit donner l'accès en lecture aux repos qui l'installent (_Package settings → Manage Actions access_).
+
+### Exemples
 
 `.github/workflows/ci.yml` :
 
@@ -257,8 +289,6 @@ jobs:
       contents: read
 ```
 
-`workflows-lint` lit la config du projet : `.github/zizmor.yml` (copier celui d'id_toolbox) et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels.
-
 `.github/workflows/release.yml` :
 
 ```yaml
@@ -286,8 +316,6 @@ jobs:
     permissions:
       contents: write
 ```
-
-Les `permissions` du job appelant plafonnent celles du workflow appelé : sans `contents: write`, la release échoue.
 
 Une lib publiée sur GitHub Packages insère la publication entre les deux :
 
@@ -318,27 +346,14 @@ jobs:
 Une ressource FiveM vérifie sa version dans son propre job de release :
 
 ```yaml
+- uses: actions/checkout@v7
+  with:
+    persist-credentials: false
+
 - uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.0.0
   with:
     tag: ${{ github.ref_name }}
 ```
-
-## Ce que la config impose
-
-TypeScript (`base.json`) :
-- `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, code inatteignable en erreur.
-- `noUncheckedIndexedAccess` : `arr[i]` et `record[key]` sont typés `T | undefined`.
-- `noImplicitOverride` : le mot-clé `override` est obligatoire quand une méthode redéfinit celle d'un parent.
-- `verbatimModuleSyntax` : un import utilisé seulement comme type s'écrit `import type`.
-- `allowImportingTsExtensions` : les imports peuvent finir en `.ts`.
-- `noEmit` : TypeScript ne fait que vérifier, ce sont Bun, Vite ou Next qui buildent.
-
-Biome (`configs/base`) :
-- Indentation en tabulations (largeur 4), lignes de 200 caractères, YAML en 2 espaces.
-- Imports triés automatiquement.
-- Syntaxe Tailwind (`@theme`, `@apply`…) acceptée dans le CSS.
-- `.gitignore` respecté, `dist/` ignoré.
-- Les règles React et Next s'activent toutes seules quand ces dépendances sont dans le `package.json`.
 
 ## Mettre à jour un projet
 
