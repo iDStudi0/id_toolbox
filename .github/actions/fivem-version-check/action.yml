@@ -1,0 +1,94 @@
+name: FiveM version check
+description: >
+  Fails unless the release tag, package.json and fxmanifest.lua declare the same
+  version. package.json is the source when it exists, fxmanifest.lua otherwise.
+
+inputs:
+  tag:
+    description: Release tag, bare (v1.0.0) or full ref (refs/tags/v1.0.0).
+    required: true
+  path:
+    description: Directory holding package.json and fxmanifest.lua.
+    required: false
+    default: .
+  prefix:
+    description: Prefix the tag carries in front of the version.
+    required: false
+    default: v
+
+outputs:
+  version:
+    description: The validated version, without the tag prefix.
+    value: ${{ steps.check.outputs.version }}
+
+runs:
+  using: composite
+
+  steps:
+    - name: Check version
+      id: check
+      shell: bash
+      env:
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_PREFIX: ${{ inputs.prefix }}
+      run: |
+        set -euo pipefail
+
+        manifest="$INPUT_PATH/package.json"
+        fxmanifest="$INPUT_PATH/fxmanifest.lua"
+
+        if [ ! -f "$fxmanifest" ]; then
+          echo "::error::$fxmanifest not found." >&2
+          exit 1
+        fi
+
+        declared=""
+        source="fxmanifest.lua"
+
+        if [ -f "$manifest" ]; then
+          source="package.json"
+          declared="$(jq -r '.version // empty' "$manifest")"
+          if [ -z "$declared" ]; then
+            echo "::error::$manifest has no version field." >&2
+            exit 1
+          fi
+        fi
+
+        # Anchored so fx_version and node_version are not matched.
+        matches="$(grep -c "^[[:space:]]*version[[:space:](]" "$fxmanifest" || true)"
+
+        if [ "$matches" -eq 0 ]; then
+          echo "::error::$fxmanifest has no version field. Add: version '${declared:-<the released version>}'" >&2
+          exit 1
+        fi
+
+        if [ "$matches" -gt 1 ]; then
+          echo "::error::$fxmanifest declares $matches version fields; there must be exactly one." >&2
+          exit 1
+        fi
+
+        fxversion="$(sed -n "s/^[[:space:]]*version[[:space:]]*(\{0,1\}[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" "$fxmanifest")"
+
+        if [ -z "$fxversion" ]; then
+          echo "::error::could not read the version value from $fxmanifest. Expected: version '${declared:-<the released version>}'" >&2
+          exit 1
+        fi
+
+        if [ -z "$declared" ]; then
+          declared="$fxversion"
+        elif [ "$fxversion" != "$declared" ]; then
+          echo "::error::fxmanifest.lua declares version $fxversion, package.json declares $declared. package.json is the source." >&2
+          exit 1
+        fi
+
+        tag="${INPUT_TAG#refs/tags/}"
+        expected="$INPUT_PREFIX$declared"
+
+        if [ "$tag" != "$expected" ]; then
+          echo "::error::tag $tag does not match the $source version $declared (expected $expected)." >&2
+          exit 1
+        fi
+
+        echo "version=$declared" >> "$GITHUB_OUTPUT"
+        echo "$tag and $source agree on $declared"
