@@ -8,7 +8,7 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 
 | Projet                  | tsconfig                               | Biome           | Build         |
 | ----------------------- | -------------------------------------- | --------------- | ------------- |
-| Ressource FiveM         | `fivem`                                | `base`          | `fivem-build` |
+| Ressource FiveM         | `fivem-server`, `fivem-client`         | `base`          | `fivem-build` |
 | Serveur Bun / Elysia    | `bun`                                  | `base`          | Bun           |
 | Serveur NestJS sous Bun | `nest`                                 | `base` + `nest` | Bun           |
 | Bot Discord (id_node)   | `bot`                                  | `base`          | Bun           |
@@ -17,13 +17,14 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 
 Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 
-| Preset  | Environnement                       | `lib`                     | En plus                       |
-| ------- | ----------------------------------- | ------------------------- | ----------------------------- |
-| `fivem` | FXServer, Node 22                   | ES2024                    |                               |
-| `bun`   | Bun 1.4                             | ESNext                    |                               |
-| `nest`  | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
-| `bot`   | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
-| `web`   | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
+| Preset         | Environnement                       | `lib`                     | En plus                       |
+| -------------- | ----------------------------------- | ------------------------- | ----------------------------- |
+| `fivem-server` | FXServer, `node_version '22'`       | ES2024                    |                               |
+| `fivem-client` | client FiveM, V8 9.3 sans Node      | ES2022                    |                               |
+| `bun`          | Bun 1.4                             | ESNext                    |                               |
+| `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
+| `bot`          | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
+| `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
 
 `web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16.
 
@@ -69,7 +70,7 @@ Scripts communs :
 
 ```json
 {
-	"extends": "./node_modules/id_toolbox/tsconfig/fivem.json",
+	"extends": "./node_modules/id_toolbox/tsconfig/fivem-server.json",
 	"compilerOptions": {
 		"types": ["node", "bun", "@citizenfx/server"],
 		"paths": {
@@ -88,6 +89,8 @@ Scripts :
 ```
 
 `fivem-build` bundle `src/index.ts` vers `dist/build.js` (CJS minifié, enveloppé dans une IIFE), depuis le dossier courant. `@citizenfx/server` est toujours externe. `--external a,b` en ajoute d'autres, par exemple `fivem-build --external bufferutil,utf-8-validate` pour `ws`.
+
+`fivem-server` suppose Node 22 : le `fxmanifest.lua` doit déclarer `node_version '22'`, sinon FXServer lance Node 16. `fivem-client` vise le V8 9.3 du client : API jusqu'à ES2022, syntaxe ES2021 (les blocs `static {}` de classe n'existent pas encore).
 
 ### Serveur Bun / Elysia
 
