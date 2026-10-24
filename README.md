@@ -90,7 +90,19 @@ Scripts :
 "build": "bun run typecheck && bun run build:fast"
 ```
 
-`fivem-build` bundle `src/index.ts` vers `dist/build.js` (CJS minifié, enveloppé dans une IIFE), depuis le dossier courant. `@citizenfx/server` est toujours externe. `--external a,b` en ajoute d'autres, par exemple `fivem-build --external bufferutil,utf-8-validate` pour `ws`.
+`fivem-build` bundle `src/index.ts` vers `dist/build.js` (CJS minifié, enveloppé dans une IIFE), depuis le dossier courant. Options :
+
+- `--side server|client` (défaut `server`) : `server` cible Node, `client` cible le V8 nu du client FiveM (pas de `require` ni de built-ins Node). `@citizenfx/<side>` est toujours externe.
+- `--entry` et `--outfile` changent l'entrée et la sortie, relatives au dossier courant.
+- `--external a,b` ajoute des externes, par exemple `fivem-build --external bufferutil,utf-8-validate` pour `ws`.
+
+Une ressource avec les deux côtés a un tsconfig par côté (les globales `@citizenfx/server` et `@citizenfx/client` se contredisent) et deux builds :
+
+```json
+"build:fast": "fivem-build --entry src/server/index.ts --outfile dist/server.js && fivem-build --side client --entry src/client/index.ts --outfile dist/client.js"
+```
+
+Le tsconfig client étend `fivem-client.json` avec `"types": ["@citizenfx/client"]`.
 
 `fivem-server` suppose Node 22 : le `fxmanifest.lua` doit déclarer `node_version '22'`, sinon FXServer lance Node 16. `fivem-client` vise le V8 9.3 du client : API jusqu'à ES2022, syntaxe ES2021 (les blocs `static {}` de classe n'existent pas encore).
 
