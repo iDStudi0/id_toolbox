@@ -219,10 +219,15 @@ Au premier `next dev`, Next peut ajouter des options ou des entrées d'`include`
 
 ## CI
 
-Deux workflows réutilisables, appelés avec le même tag que la devDependency :
+Workflows réutilisables et action, appelés avec le même tag que la devDependency :
 
-- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality` et `typecheck` sont actives par défaut, `test` (`bun test`) et `build` (`bun run build`) non : `bun test` échoue s'il ne trouve aucun fichier de test.
+- `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact. Le secret optionnel `NPM_TOKEN` authentifie `bun install` auprès de GitHub Packages.
 - `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
+- `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages avec le `GITHUB_TOKEN`.
+- `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet.
+- `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`).
+
+Le scope `@idstudi0` reste déclaré dans le `.npmrc` du projet (`@idstudi0:registry=https://npm.pkg.github.com`) : les workflows n'ajoutent que le token, dans `~/.npmrc`.
 
 `.github/workflows/ci.yml` :
 
@@ -243,9 +248,17 @@ jobs:
     permissions:
       contents: read
     with:
-      test: true
       build: true
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  workflows-lint:
+    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.0.0
+    permissions:
+      contents: read
 ```
+
+`workflows-lint` lit la config du projet : `.github/zizmor.yml` (copier celui d'id_toolbox) et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels.
 
 `.github/workflows/release.yml` :
 
@@ -275,6 +288,39 @@ jobs:
 ```
 
 Les `permissions` du job appelant plafonnent celles du workflow appelé : sans `contents: write`, la release échoue.
+
+Une lib publiée sur GitHub Packages insère la publication entre les deux :
+
+```yaml
+jobs:
+  checks:
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.0.0
+    permissions:
+      contents: read
+    with:
+      build: true
+
+  publish:
+    needs: checks
+    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@v2.0.0
+    permissions:
+      contents: read
+      packages: write
+
+  release:
+    needs: publish
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.0.0
+    permissions:
+      contents: write
+```
+
+Une ressource FiveM vérifie sa version dans son propre job de release :
+
+```yaml
+- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.0.0
+  with:
+    tag: ${{ github.ref_name }}
+```
 
 ## Ce que la config impose
 
