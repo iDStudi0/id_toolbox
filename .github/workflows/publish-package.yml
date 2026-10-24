@@ -1,0 +1,53 @@
+name: Publish package
+
+on:
+  workflow_call:
+    inputs:
+      build:
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check tag matches package.json version
+        run: |
+          expected="v$(jq -r .version package.json)"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ($expected)."
+            exit 1
+          fi
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+
+      - name: Authenticate with GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        if: ${{ inputs.build }}
+        run: bun run build
+
+      - name: Publish to GitHub Packages
+        run: bun publish
