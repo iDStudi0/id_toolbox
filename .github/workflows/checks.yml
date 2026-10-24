@@ -50,17 +50,38 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Lint & format
+        id: quality
         if: ${{ !cancelled() && inputs.quality }}
         run: bun run quality
 
       - name: Typecheck
+        id: typecheck
         if: ${{ !cancelled() && inputs.typecheck }}
         run: bun run typecheck
 
       - name: Test
+        id: test
         if: ${{ !cancelled() && inputs.test }}
         run: bun test
 
       - name: Build
+        id: build
         if: ${{ !cancelled() && inputs.build }}
         run: bun run build
+
+      - name: Job summary
+        if: ${{ !cancelled() }}
+        env:
+          REF: ${{ github.head_ref || github.ref_name }}
+          BUN_VERSION: ${{ steps.setup-bun.outputs.bun-version }}
+        run: |
+          {
+            echo "### Checks — \`$REF\` (bun $BUN_VERSION)"
+            echo
+            echo "| Check | Résultat |"
+            echo "| --- | --- |"
+            echo "| Lint & format (biome ci) | ${{ steps.quality.outcome }} |"
+            echo "| Typecheck (bun check) | ${{ steps.typecheck.outcome }} |"
+            echo "| Tests (bun test) | ${{ steps.test.outcome }} |"
+            echo "| Build (bun run build) | ${{ steps.build.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
