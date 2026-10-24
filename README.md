@@ -9,6 +9,7 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 | Projet                  | tsconfig                               | Biome           | Build         |
 | ----------------------- | -------------------------------------- | --------------- | ------------- |
 | Ressource FiveM         | `fivem-server`, `fivem-client`         | `base`          | `fivem-build` |
+| UI NUI FiveM (Vite)     | `fivem-nui` + `bun` (`vite.config.ts`) | `base`          | `vite build`  |
 | Serveur Bun / Elysia    | `bun`                                  | `base`          | Bun           |
 | Serveur NestJS sous Bun | `nest`                                 | `base` + `nest` | Bun           |
 | Bot Discord (id_node)   | `bot`                                  | `base`          | Bun           |
@@ -21,12 +22,13 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 | -------------- | ----------------------------------- | ------------------------- | ----------------------------- |
 | `fivem-server` | FXServer, `node_version '22'`       | ES2024                    |                               |
 | `fivem-client` | client FiveM, V8 9.3 sans Node      | ES2022                    |                               |
+| `fivem-nui`    | CEF de FiveM, Chromium 144          | ES2025, DOM, DOM.Iterable | `web`                         |
 | `bun`          | Bun 1.4                             | ESNext                    |                               |
 | `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
 | `bot`          | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
 | `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
 
-`web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16.
+`web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16. `fivem-nui` n'a pas cette contrainte : le NUI ne tourne que dans le Chromium embarqué par FiveM (`vendor/cef/cef_build_name.txt` dans citizenfx/fivem), indépendant du V8 des scripts client.
 
 ## Installation
 
