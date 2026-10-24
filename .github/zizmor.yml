@@ -1,0 +1,10 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": ref-pin
+  self-repository:
+    disable: true
+  use-trusted-publishing:
+    ignore:
+      - publish-package.yml
