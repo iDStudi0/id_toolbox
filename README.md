@@ -22,7 +22,7 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 "devDependencies": {
 	"@biomejs/biome": "^2.6.3",
 	"@types/bun": "^1.4.4",
-	"id_toolbox": "github:iDStudi0/id_toolbox#v2.1.2",
+	"id_toolbox": "github:iDStudi0/id_toolbox#v2.2.0",
 	"typescript": "^7.0.2"
 }
 ```
@@ -297,7 +297,7 @@ concurrency:
 
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.2.0
     permissions:
       contents: read
       packages: read
@@ -305,7 +305,7 @@ jobs:
       build: true
 
   workflows-lint:
-    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.2.0
     permissions:
       contents: read
 ```
@@ -326,14 +326,14 @@ concurrency:
 
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.2.0
     permissions:
       contents: read
       packages: read
 
   release:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.2.0
     permissions:
       contents: write
 ```
@@ -343,7 +343,7 @@ Une lib publiée sur GitHub Packages insère la publication entre les deux :
 ```yaml
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.2.0
     permissions:
       contents: read
       packages: read
@@ -352,14 +352,14 @@ jobs:
 
   publish:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@v2.2.0
     permissions:
       contents: read
       packages: write
 
   release:
     needs: publish
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.1.2
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.2.0
     permissions:
       contents: write
 ```
@@ -371,7 +371,7 @@ Une ressource FiveM vérifie sa version dans son propre job de release :
   with:
     persist-credentials: false
 
-- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.1.2
+- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.2.0
   with:
     tag: ${{ github.ref_name }}
 ```
