@@ -1,0 +1,6 @@
+# actionlint 1.7.12 bundles create-github-app-token metadata from before v3 added client-id.
+paths:
+  .github/workflows/workflows-lint.yml:
+    ignore:
+      - 'missing input "app-id"'
+      - 'input "client-id" is not defined'
