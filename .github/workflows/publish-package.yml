@@ -50,4 +50,8 @@ jobs:
         run: bun run build
 
       - name: Publish to GitHub Packages
-        run: bun publish
+        run: |
+          case "$(jq -r .version package.json)" in
+            *-*) bun publish --tag next ;;
+            *) bun publish ;;
+          esac
