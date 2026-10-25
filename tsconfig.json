@@ -3,5 +3,5 @@
 	"compilerOptions": {
 		"types": ["bun"]
 	},
-	"include": ["bin/**/*"]
+	"include": ["bin/**/*", "testing/**/*"]
 }

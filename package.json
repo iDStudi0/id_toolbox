@@ -11,6 +11,7 @@
 	"files": [
 		"bin",
 		"biome",
+		"testing",
 		"tsconfig",
 		"biome-manifest.json"
 	],

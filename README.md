@@ -204,6 +204,27 @@ Scripts : `bun check` voit que `tsconfig.json` n'a pas de fichiers et vérifie l
 
 Au premier `next dev`, Next peut ajouter des options ou des entrées d'`include` dans ce fichier : c'est attendu, garde-les.
 
+## Couverture des tests
+
+`bun test --coverage` ne compte que les fichiers importés par un test : un fichier jamais importé n'apparaît pas et ne fait pas baisser le total. `coverageGuard` ajoute un test qui importe tout `src/**/*.ts` (hors `.d.ts` et `.test.ts`), à placer dans `tests/coverage-guard.test.ts` :
+
+```ts
+import { coverageGuard } from "id_toolbox/testing/coverage-guard";
+
+coverageGuard([/^src\/index\.ts$/, /^src\/prisma\//]);
+```
+
+Les motifs en argument excluent les fichiers qu'on ne peut pas importer sans effet de bord (point d'entrée qui démarre le serveur, client Prisma généré). Avec un seuil dans `bunfig.toml` :
+
+```toml
+[test]
+coverage = true
+coverageSkipTestFiles = true
+coverageReporter = ["text", "lcov"]
+coveragePathIgnorePatterns = ["../**"]
+coverageThreshold = { lines = 1.0, functions = 1.0 }
+```
+
 ## Ce que la config impose
 
 Les presets tsconfig, tous construits sur `tsconfig/base.json` :
