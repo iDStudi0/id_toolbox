@@ -56,21 +56,22 @@ jobs:
         run: printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" >> ~/.npmrc
 
       - name: Install dependencies
+        id: install
         run: bun install --frozen-lockfile
 
       - name: Lint & format
         id: quality
-        if: ${{ !cancelled() && inputs.quality }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.quality }}
         run: bun run quality
 
       - name: Typecheck
         id: typecheck
-        if: ${{ !cancelled() && inputs.typecheck }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.typecheck }}
         run: bun run typecheck
 
       - name: Test
         id: test
-        if: ${{ !cancelled() && inputs.test }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.test }}
         env:
           TEST_REPORTS: ${{ inputs.test-reports }}
         run: |
@@ -82,7 +83,7 @@ jobs:
           bun test "${args[@]}"
 
       - name: Upload test reports
-        if: ${{ !cancelled() && inputs.test && inputs.test-reports }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.test && inputs.test-reports }}
         uses: actions/upload-artifact@v7
         with:
           name: test-reports-${{ github.run_id }}
@@ -94,7 +95,7 @@ jobs:
 
       - name: Build
         id: build
-        if: ${{ !cancelled() && inputs.build }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.build }}
         run: bun run build
 
       - name: Job summary
@@ -108,6 +109,7 @@ jobs:
             echo
             echo "| Check | Résultat |"
             echo "| --- | --- |"
+            echo "| Install (bun install) | ${{ steps.install.outcome }} |"
             echo "| Lint & format (biome ci) | ${{ steps.quality.outcome }} |"
             echo "| Typecheck (bun check) | ${{ steps.typecheck.outcome }} |"
             echo "| Tests (bun test) | ${{ steps.test.outcome }} |"
