@@ -15,6 +15,10 @@ on:
         description: GitHub App private key, paired with app-client-id
         required: false
 
+env:
+  ACTIONLINT_VERSION: 1.17.0
+  ZIZMOR_VERSION: 1.31.1
+
 jobs:
   workflows-lint:
     name: Workflows lint
@@ -43,9 +47,19 @@ jobs:
           permission-contents: read
 
       - name: actionlint
-        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          gh release download "v${ACTIONLINT_VERSION}" --repo kjanat/actionlint --pattern "$archive" --dir "$RUNNER_TEMP"
+          gh attestation verify "$RUNNER_TEMP/$archive" --repo kjanat/actionlint
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
 
       - name: zizmor
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
-        run: pipx run zizmor==1.30.1 --format=github .
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          advanced-security: false
+          annotations: true
+          version: ${{ env.ZIZMOR_VERSION }}
+          token: ${{ steps.app-token.outputs.token || github.token }}
