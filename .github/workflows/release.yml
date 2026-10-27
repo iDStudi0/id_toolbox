@@ -11,13 +11,13 @@ concurrency:
 
 jobs:
   checks:
-    uses: ./.github/workflows/checks.yml
+    uses: $/.github/workflows/checks.yml
     permissions:
       contents: read
       packages: read
 
   release:
     needs: checks
-    uses: ./.github/workflows/github-release.yml
+    uses: $/.github/workflows/github-release.yml
     permissions:
       contents: write

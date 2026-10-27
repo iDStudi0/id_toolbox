@@ -1,6 +1,4 @@
 rules:
-  self-repository:
-    disable: true
   use-trusted-publishing:
     ignore:
       - publish-package.yml
