@@ -289,6 +289,7 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 concurrency:
@@ -297,18 +298,43 @@ concurrency:
 
 jobs:
   checks:
+    if: ${{ !github.event.pull_request.draft }}
     uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.3.0
     permissions:
       contents: read
       packages: read
     with:
       build: true
+```
 
+Les PR en brouillon ne lancent pas la CI : elle part au passage en _Ready for review_.
+
+`.github/workflows/workflows-lint.yml`, dans un workflow à part pour ne payer une minute que quand `.github/` change, plus un passage par semaine pour les nouvelles alertes de zizmor :
+
+```yaml
+name: Workflows lint
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/**"
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: workflows-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
   workflows-lint:
     uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.3.0
     permissions:
       contents: read
 ```
+
+Ne pas le rendre obligatoire dans la protection de branche : sans changement dans `.github/`, il ne se lance pas et la PR resterait en attente.
 
 `.github/workflows/release.yml` :
 
