@@ -2,11 +2,17 @@ name: GitHub release
 
 on:
   workflow_call:
+    inputs:
+      runner-labels:
+        description: "Runner labels (JSON array); a self-hosted runner needs gh"
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
 
 jobs:
   release:
     name: GitHub release
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runner-labels) }}
 
     timeout-minutes: 5
 
@@ -14,14 +20,11 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
       - name: Check tag matches package.json version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          expected="v$(jq -r .version package.json)"
+          expected="v$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$GITHUB_REF_NAME" --jq .version)"
           if [ "$GITHUB_REF_NAME" != "$expected" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ($expected)."
             exit 1
