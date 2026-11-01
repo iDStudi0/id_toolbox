@@ -10,7 +10,7 @@
         "typescript": "^7.0.2",
       },
       "peerDependencies": {
-        "@biomejs/biome": "^2.6.3",
+        "@biomejs/biome": "^2.6.4",
       },
     },
   },
