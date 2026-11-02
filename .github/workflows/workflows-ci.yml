@@ -1,0 +1,19 @@
+name: Workflows CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+    paths: [".github/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: workflows-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflows-lint:
+    if: ${{ !github.event.pull_request.draft }}
+    uses: $/.github/workflows/workflows-lint.yml
+    permissions:
+      contents: read
