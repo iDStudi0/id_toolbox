@@ -23,7 +23,7 @@ env:
 jobs:
   workflows-lint:
     name: Workflows lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     timeout-minutes: 5
 
