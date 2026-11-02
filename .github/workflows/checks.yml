@@ -41,6 +41,8 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
+          registries: |
+            @idstudi0:https://npm.pkg.github.com/|$GITHUB_TOKEN
 
       - name: Restore bun install cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -50,13 +52,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-${{ steps.setup-bun.outputs.bun-version }}-
 
-      - name: Authenticate with GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" >> ~/.npmrc
-
       - name: Install dependencies
         id: install
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: bun install --frozen-lockfile
 
       - name: Lint & format

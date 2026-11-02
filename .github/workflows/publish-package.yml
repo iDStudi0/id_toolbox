@@ -36,13 +36,12 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
-
-      - name: Authenticate with GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" >> ~/.npmrc
+          registries: |
+            @idstudi0:https://npm.pkg.github.com/|$GITHUB_TOKEN
 
       - name: Install dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun install --frozen-lockfile
 
       - name: Build
@@ -50,6 +49,8 @@ jobs:
         run: bun run build
 
       - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           case "$(jq -r .version package.json)" in
             *-*) bun publish --tag next ;;
