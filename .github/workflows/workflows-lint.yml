@@ -7,10 +7,11 @@ on:
         description: Comma-separated private repositories of the owner that the workflows use actions from, read with the GitHub App token
         type: string
         default: ""
-    secrets:
       app-client-id:
         description: GitHub App client ID, required with private-repositories
-        required: false
+        type: string
+        default: ""
+    secrets:
       app-private-key:
         description: GitHub App private key, paired with app-client-id
         required: false
@@ -40,7 +41,7 @@ jobs:
         if: ${{ inputs.private-repositories != '' }}
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          client-id: ${{ secrets.app-client-id }}
+          client-id: ${{ inputs.app-client-id }}
           private-key: ${{ secrets.app-private-key }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ inputs.private-repositories }}
