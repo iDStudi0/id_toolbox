@@ -244,6 +244,7 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 `bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
 
 TypeScript (`base.json`) :
+
 - `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, code inatteignable en erreur.
 - `noUncheckedIndexedAccess` : `arr[i]` et `record[key]` sont typés `T | undefined`.
 - `noImplicitOverride` : le mot-clé `override` est obligatoire quand une méthode redéfinit celle d'un parent.
@@ -252,6 +253,7 @@ TypeScript (`base.json`) :
 - `noEmit` : TypeScript ne fait que vérifier, ce sont Bun, Vite ou Next qui buildent.
 
 Biome (`configs/base`) :
+
 - Indentation en tabulations (largeur 4), lignes de 200 caractères, YAML en 2 espaces.
 - Imports triés automatiquement.
 - Syntaxe Tailwind (`@theme`, `@apply`…) acceptée dans le CSS.
@@ -451,6 +453,7 @@ bun run quality:fix
 ```
 
 Publier une version : mettre à jour `version` dans `package.json`, committer, puis pousser un tag `vX.Y.Z`.
+
 - **patch** : correction sans effet sur les projets.
 - **minor** : ajout qui ne casse rien (nouveau preset, nouvelle option de `fivem-build`).
 - **major** : changement qui peut faire échouer le typecheck, le lint ou le build d'un projet existant (règle plus stricte, preset modifié).
