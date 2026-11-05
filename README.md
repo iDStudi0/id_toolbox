@@ -266,6 +266,7 @@ Workflows réutilisables et action, appelés avec le même tag que la devDepende
 - `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
 - `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages.
 - `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet. Il lit la config du projet : `.github/zizmor.yml` (zizmor exige des actions épinglées par SHA : tant que le projet appelle id_toolbox par tag, y autoriser `"iDStudi0/*": ref-pin` dans `rules.unpinned-uses.config.policies`) et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels. Si les workflows utilisent des actions de dépôts privés de l'org, les audits en ligne de zizmor ne peuvent pas les lire avec le `github.token` : passer `private-repositories` (liste séparée par des virgules), l'input `app-client-id` et le secret `app-private-key` d'une GitHub App installée sur ces dépôts.
+- `bake-push.yml` : construit et pousse les images d'un projet Docker avec `docker buildx bake --push`. Le checkout lit les submodules privés avec un token de GitHub App (`app-client-id`, `token-repositories`, secret `app-private-key`). Le fichier bake (`bake-file`, `docker/docker-bake.hcl` par défaut) porte les cibles et les tags, et lit dans l'environnement `OWNER` (propriétaire du dépôt, à passer par `lower()` pour ghcr), `TAG` (SHA du commit) et `BUN_VERSION` (`.bun-version`, obligatoire). `NPM_TOKEN` (le `GITHUB_TOKEN`) est disponible pour un secret BuildKit. Les tags poussés sont listés dans le résumé du job.
 - `ghcr-prune.yml` : supprime les vieilles versions des packages ghcr `packages` en gardant les `keep-n-tagged` (10 par défaut) dernières taguées, la limite d'un rollback par SHA. `cache-packages` vide les versions non taguées d'un cache de build registry. `dry-run: true` pour tester.
 - `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`).
 
@@ -401,6 +402,40 @@ Une ressource FiveM vérifie sa version dans son propre job de release :
 - uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.4.0
   with:
     tag: ${{ github.ref_name }}
+```
+
+Un projet Docker déployé sur un runner self-hosted construit ses images, déploie, puis nettoie ghcr :
+
+```yaml
+jobs:
+  build:
+    uses: iDStudi0/id_toolbox/.github/workflows/bake-push.yml@v3.1.0
+    permissions:
+      contents: read
+      packages: write
+    with:
+      app-client-id: ${{ vars.GH_APP_DEPLOYMENT_CLIENT_ID }}
+      token-repositories: |
+        my_app
+        my-prisma-database
+    secrets:
+      app-private-key: ${{ secrets.GH_APP_DEPLOYMENT_PRIVATE_KEY }}
+
+  deploy:
+    needs: build
+    runs-on: ["self-hosted", "linux", "x64", "my-runner"]
+    permissions: {}
+    steps:
+      - run: sudo id-app-deploy my_app "$GITHUB_SHA"
+
+  prune:
+    needs: deploy
+    uses: iDStudi0/id_toolbox/.github/workflows/ghcr-prune.yml@v3.1.0
+    permissions:
+      packages: write
+    with:
+      packages: my_app-api,my_app-web
+      cache-packages: my_app-cache
 ```
 
 ## Mettre à jour un projet
