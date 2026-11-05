@@ -1,0 +1,53 @@
+name: ghcr prune
+
+on:
+  workflow_call:
+    inputs:
+      packages:
+        description: Comma-separated ghcr packages whose old image versions are deleted
+        required: true
+        type: string
+      keep-n-tagged:
+        description: Tagged versions kept per package, which is also how far back a rollback by SHA can reach
+        type: number
+        default: 10
+      cache-packages:
+        description: Comma-separated ghcr packages holding a registry build cache, pruned of untagged versions only
+        type: string
+        default: ""
+      dry-run:
+        description: Log what would be deleted without deleting it
+        type: boolean
+        default: false
+      runner-labels:
+        description: Runner labels (JSON array)
+        type: string
+        default: '["ubuntu-slim"]'
+
+jobs:
+  prune:
+    name: ghcr prune
+    runs-on: ${{ fromJSON(inputs.runner-labels) }}
+
+    timeout-minutes: 10
+
+    permissions:
+      packages: write
+
+    steps:
+      # An age-based delete would drop the kept tags' untagged platform, provenance and SBOM manifests.
+      - name: Prune old image versions
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        with:
+          packages: ${{ inputs.packages }}
+          keep-n-tagged: ${{ inputs.keep-n-tagged }}
+          delete-untagged: true
+          dry-run: ${{ inputs.dry-run }}
+
+      - name: Prune the build cache
+        if: ${{ inputs.cache-packages != '' }}
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        with:
+          packages: ${{ inputs.cache-packages }}
+          delete-untagged: true
+          dry-run: ${{ inputs.dry-run }}
