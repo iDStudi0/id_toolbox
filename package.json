@@ -1,7 +1,7 @@
 {
 	"name": "id_toolbox",
 	"description": "Shared dev tooling for iDStudio TypeScript projects: FiveM resources, React sites and Bun servers.",
-	"version": "3.1.0",
+	"version": "3.2.0",
 	"license": "MIT",
 	"private": true,
 	"type": "module",
