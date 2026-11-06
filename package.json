@@ -21,7 +21,7 @@
 		"quality:fix": "biome check --write ."
 	},
 	"peerDependencies": {
-		"@biomejs/biome": "^2.6.4"
+		"@biomejs/biome": "^2.6.5"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.5",
