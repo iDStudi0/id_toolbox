@@ -22,7 +22,7 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 "devDependencies": {
 	"@biomejs/biome": "^2.6.3",
 	"@types/bun": "^1.4.4",
-	"id_toolbox": "github:iDStudi0/id_toolbox#v2.4.0",
+	"id_toolbox": "github:iDStudi0/id_toolbox#v3.1.0",
 	"typescript": "^7.0.2"
 }
 ```
@@ -264,12 +264,12 @@ Biome (`configs/base`) :
 
 ## CI
 
-Workflows réutilisables et action, appelés avec le même tag que la devDependency :
+Workflows réutilisables et action, épinglés par SHA sur le commit du tag de la devDependency, la version en commentaire (`@<sha> # vX.Y.Z`) :
 
 - `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact.
 - `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
 - `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages.
-- `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet. Il lit la config du projet : `.github/zizmor.yml` (zizmor exige des actions épinglées par SHA : tant que le projet appelle id_toolbox par tag, y autoriser `"iDStudi0/*": ref-pin` dans `rules.unpinned-uses.config.policies`) et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels. Si les workflows utilisent des actions de dépôts privés de l'org, les audits en ligne de zizmor ne peuvent pas les lire avec le `github.token` : passer `private-repositories` (liste séparée par des virgules), l'input `app-client-id` et le secret `app-private-key` d'une GitHub App installée sur ces dépôts.
+- `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet. Il lit la config du projet : `.github/zizmor.yml` et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels. Si les workflows utilisent des actions de dépôts privés de l'org, les audits en ligne de zizmor ne peuvent pas les lire avec le `github.token` : passer `private-repositories` (liste séparée par des virgules), l'input `app-client-id` et le secret `app-private-key` d'une GitHub App installée sur ces dépôts.
 - `bake-push.yml` : construit et pousse les images d'un projet Docker avec `docker buildx bake --push`. Le checkout lit les submodules privés avec un token de GitHub App (`app-client-id`, `token-repositories`, secret `app-private-key`). Le fichier bake (`bake-file`, `docker/docker-bake.hcl` par défaut) porte les cibles et les tags, et lit dans l'environnement `OWNER` (propriétaire du dépôt, à passer par `lower()` pour ghcr), `TAG` (SHA du commit) et `BUN_VERSION` (`.bun-version`, obligatoire). `NPM_TOKEN` (le `GITHUB_TOKEN`) est disponible pour un secret BuildKit. Les tags poussés sont listés dans le résumé du job.
 - `ghcr-prune.yml` : supprime les vieilles versions des packages ghcr `packages` en gardant les `keep-n-tagged` (10 par défaut) dernières taguées, la limite d'un rollback par SHA. `cache-packages` vide les versions non taguées d'un cache de build registry. `dry-run: true` pour tester.
 - `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`).
@@ -305,7 +305,7 @@ concurrency:
 jobs:
   checks:
     if: ${{ !github.event.pull_request.draft }}
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
       packages: read
@@ -335,7 +335,7 @@ concurrency:
 
 jobs:
   workflows-lint:
-    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
 ```
@@ -358,14 +358,14 @@ concurrency:
 
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
       packages: read
 
   release:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: write
 ```
@@ -375,7 +375,7 @@ Une lib publiée sur GitHub Packages insère la publication entre les deux :
 ```yaml
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
       packages: read
@@ -384,14 +384,14 @@ jobs:
 
   publish:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
       packages: write
 
   release:
     needs: publish
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@v2.4.0
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: write
 ```
@@ -403,7 +403,7 @@ Une ressource FiveM vérifie sa version dans son propre job de release :
   with:
     persist-credentials: false
 
-- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@v2.4.0
+- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
   with:
     tag: ${{ github.ref_name }}
 ```
@@ -413,7 +413,7 @@ Un projet Docker déployé sur un runner self-hosted construit ses images, dépl
 ```yaml
 jobs:
   build:
-    uses: iDStudi0/id_toolbox/.github/workflows/bake-push.yml@v3.1.0
+    uses: iDStudi0/id_toolbox/.github/workflows/bake-push.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       contents: read
       packages: write
@@ -434,7 +434,7 @@ jobs:
 
   prune:
     needs: deploy
-    uses: iDStudi0/id_toolbox/.github/workflows/ghcr-prune.yml@v3.1.0
+    uses: iDStudi0/id_toolbox/.github/workflows/ghcr-prune.yml@97f022ac71f2e17b56a36e6d60d43966553b32ff # v3.1.0
     permissions:
       packages: write
     with:
@@ -444,7 +444,7 @@ jobs:
 
 ## Mettre à jour un projet
 
-Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`) et dans les `uses:` des workflows, puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
+Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`) et, dans les `uses:` des workflows, le SHA (`git rev-parse v1.1.0^{commit}`) et le commentaire de version, puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
 
 ## Développer le toolbox
 
