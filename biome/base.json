@@ -12,6 +12,13 @@
 		"indentWidth": 4,
 		"lineWidth": 200
 	},
+	"linter": {
+		"rules": {
+			"complexity": {
+				"useLiteralKeys": "off"
+			}
+		}
+	},
 	"css": {
 		"parser": {
 			"tailwindDirectives": true

@@ -259,6 +259,7 @@ Biome (`configs/base`) :
 - Imports triés automatiquement.
 - Syntaxe Tailwind (`@theme`, `@apply`…) acceptée dans le CSS.
 - `.gitignore` respecté, `dist/` ignoré.
+- `useLiteralKeys` coupée : elle réécrirait `record["key"]` en `record.key`, ce que refuse `noPropertyAccessFromIndexSignature`.
 - Les règles React et Next s'activent toutes seules quand ces dépendances sont dans le `package.json`.
 
 ## CI
