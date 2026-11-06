@@ -241,12 +241,13 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 
 `web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16. `fivem-nui` n'a pas cette contrainte : le NUI ne tourne que dans le Chromium embarqué par FiveM (`vendor/cef/cef_build_name.txt` dans citizenfx/fivem), indépendant du V8 des scripts client.
 
-`bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite) et `noPropertyAccessFromIndexSignature` (`record["key"]` obligatoire pour une clé non déclarée).
+`bot` reprend les décorateurs de `nest` et ajoute `exactOptionalPropertyTypes` (une propriété optionnelle n'accepte pas `undefined` explicite).
 
 TypeScript (`base.json`) :
 
 - `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, code inatteignable en erreur.
 - `noUncheckedIndexedAccess` : `arr[i]` et `record[key]` sont typés `T | undefined`.
+- `noPropertyAccessFromIndexSignature` : une clé non déclarée s'écrit `record["key"]`, pas `record.key` (ex. `process.env["FOO"]`).
 - `noImplicitOverride` : le mot-clé `override` est obligatoire quand une méthode redéfinit celle d'un parent.
 - `verbatimModuleSyntax` : un import utilisé seulement comme type s'écrit `import type`.
 - `allowImportingTsExtensions` : les imports peuvent finir en `.ts`.
