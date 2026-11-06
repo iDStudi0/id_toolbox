@@ -1,8 +1,6 @@
 # id_toolbox
 
-Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources FiveM, sites React (Vite, Next.js) et serveurs Bun (Elysia, NestJS). Une seule source pour la config Biome, les tsconfig, le build FiveM et les workflows CI.
-
-Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est chargé par FXServer ni par un navigateur. Le package ne sert qu'au moment du dev et du build.
+Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources FiveM, sites React (Vite, Next.js) et serveurs Bun (Elysia, NestJS). Une seule source pour la config Biome, les tsconfig, le build FiveM et les workflows CI. Ce n'est pas une ressource FiveM : le package ne sert qu'au dev et au build.
 
 ## Quoi utiliser
 
@@ -20,14 +18,14 @@ Ce n'est **pas** une ressource FiveM : pas de `fxmanifest.lua`, rien n'est charg
 
 ```json
 "devDependencies": {
-	"@biomejs/biome": "^2.6.3",
+	"@biomejs/biome": "^2.6.5",
 	"@types/bun": "^1.4.4",
 	"id_toolbox": "github:iDStudi0/id_toolbox#v3.1.0",
 	"typescript": "^7.0.2"
 }
 ```
 
-`@biomejs/biome` (≥ 2.6.3, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
+`@biomejs/biome` (≥ 2.6.5, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
 
 `biome.json`, identique partout sauf NestJS :
 
@@ -236,7 +234,7 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 | `fivem-nui`    | CEF de FiveM, Chromium 144          | ES2025, DOM, DOM.Iterable | `web`                         |
 | `bun`          | Bun 1.4                             | ESNext                    |                               |
 | `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
-| `bot`          | Bun 1.4                             | ESNext                    | `nest` + options strictes     |
+| `bot`          | Bun 1.4                             | ESNext                    | `nest` + `exactOptional…`     |
 | `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
 
 `web` s'arrête à ES2023 car ni Vite ni Next ne polyfillent : `Object.groupBy` (ES2024) casserait sur Safari 16. `fivem-nui` n'a pas cette contrainte : le NUI ne tourne que dans le Chromium embarqué par FiveM (`vendor/cef/cef_build_name.txt` dans citizenfx/fivem), indépendant du V8 des scripts client.
@@ -267,18 +265,18 @@ Biome (`configs/base`) :
 Workflows réutilisables et action, épinglés par SHA sur le commit du tag de la devDependency, la version en commentaire (`@<sha> # vX.Y.Z`) :
 
 - `checks.yml` : installe Bun (`.bun-version`) et les dépendances, puis lance les étapes activées. `quality`, `typecheck` et `test` (`bun test --pass-with-no-tests`) sont actives par défaut, `build` (`bun run build`) non. `test-reports: true` ajoute la couverture lcov et un rapport JUnit, publiés en artifact.
-- `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées.
-- `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages.
+- `github-release.yml` : vérifie que le tag correspond à la version du `package.json` et crée la release GitHub avec des notes générées, en prerelease pour un tag `-xxx`. `runner-labels` (JSON) pour un runner self-hosted, qui doit avoir `gh`.
+- `publish-package.yml` : vérifie le tag, build (`build: false` pour sauter) et publie sur GitHub Packages, sous le dist-tag `next` pour une version `-xxx`.
 - `workflows-lint.yml` : actionlint et zizmor sur les workflows du projet. Il lit la config du projet : `.github/zizmor.yml` et, avec des runners self-hosted, `.github/actionlint.yaml` pour déclarer leurs labels. Si les workflows utilisent des actions de dépôts privés de l'org, les audits en ligne de zizmor ne peuvent pas les lire avec le `github.token` : passer `private-repositories` (liste séparée par des virgules), l'input `app-client-id` et le secret `app-private-key` d'une GitHub App installée sur ces dépôts.
-- `bake-push.yml` : construit et pousse les images d'un projet Docker avec `docker buildx bake --push`. Le checkout lit les submodules privés avec un token de GitHub App (`app-client-id`, `token-repositories`, secret `app-private-key`). Le fichier bake (`bake-file`, `docker/docker-bake.hcl` par défaut) porte les cibles et les tags, et lit dans l'environnement `OWNER` (propriétaire du dépôt, à passer par `lower()` pour ghcr), `TAG` (SHA du commit) et `BUN_VERSION` (`.bun-version`, obligatoire). `NPM_TOKEN` (le `GITHUB_TOKEN`) est disponible pour un secret BuildKit. Les tags poussés sont listés dans le résumé du job.
+- `bake-push.yml` : construit et pousse les images d'un projet Docker avec `docker buildx bake --push`. Le checkout lit les submodules privés avec un token de GitHub App (`app-client-id`, `token-repositories`, secret `app-private-key`). Le fichier bake (`bake-file`, `docker/docker-bake.hcl` par défaut) porte les cibles et les tags, et lit dans l'environnement `OWNER` (propriétaire du dépôt, à passer par `lower()` pour ghcr), `TAG` (SHA du commit) et `BUN_VERSION` (`.bun-version`, obligatoire). `NPM_TOKEN` (le `GITHUB_TOKEN`) est disponible pour un secret BuildKit. Le job tourne dans l'environnement `environment` (`production` par défaut). Les tags poussés sont listés dans le résumé du job.
 - `ghcr-prune.yml` : supprime les vieilles versions des packages ghcr `packages` en gardant les `keep-n-tagged` (10 par défaut) dernières taguées, la limite d'un rollback par SHA. `cache-packages` vide les versions non taguées d'un cache de build registry. `dry-run: true` pour tester.
-- `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`).
+- `.github/actions/fivem-version-check` : vérifie que le tag, le `package.json` et le `fxmanifest.lua` d'une ressource déclarent la même version (`fxmanifest.lua` seul pour une ressource sans `package.json`). `path` pointe une ressource hors de la racine, `prefix` change le préfixe du tag (`v` par défaut), l'output `version` donne la version validée.
 
 Les `permissions` du job appelant plafonnent celles du workflow appelé : chaque exemple ci-dessous donne le minimum nécessaire.
 
 ### GitHub Packages
 
-Les workflows s'authentifient avec le `GITHUB_TOKEN`, en ajoutant le token dans `~/.npmrc`. Le scope reste déclaré dans le `.npmrc` du projet :
+Les workflows s'authentifient avec le `GITHUB_TOKEN`, déclaré pour le scope `@idstudi0` via les `registries` de `setup-bun`. Le `.npmrc` du projet déclare le même scope pour l'install en local :
 
 ```
 @idstudi0:registry=https://npm.pkg.github.com
@@ -399,7 +397,7 @@ jobs:
 Une ressource FiveM vérifie sa version dans son propre job de release :
 
 ```yaml
-- uses: actions/checkout@v7
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
   with:
     persist-credentials: false
 
@@ -444,7 +442,7 @@ jobs:
 
 ## Mettre à jour un projet
 
-Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`) et, dans les `uses:` des workflows, le SHA (`git rev-parse v1.1.0^{commit}`) et le commentaire de version, puis `bun install`, `bun run typecheck` et `bun run quality:fix`.
+Changer le tag dans la devDependency (`#v1.0.0` → `#v1.1.0`) et, dans les `uses:` des workflows, le SHA (`git rev-parse v1.1.0^{commit}`) et le commentaire de version, puis `bun install`, `bun run typecheck` et `bun run quality:fix`. Dependabot (`github-actions`) propose la mise à jour des `uses:` tout seul, SHA et commentaire compris.
 
 ## Développer le toolbox
 
