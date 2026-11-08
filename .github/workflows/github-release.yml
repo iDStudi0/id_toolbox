@@ -20,13 +20,23 @@ jobs:
       contents: write
 
     steps:
-      - name: Check tag matches package.json version
+      - name: Check tag matches the manifest version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          expected="v$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$GITHUB_REF_NAME" --jq .version)"
-          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ($expected)."
+          contents="repos/$GITHUB_REPOSITORY/contents"
+          raw="Accept: application/vnd.github.raw+json"
+          if version=$(gh api -H "$raw" "$contents/package.json?ref=$GITHUB_REF_NAME" --jq .version 2>/dev/null); then
+            manifest=package.json
+          elif cargo=$(gh api -H "$raw" "$contents/Cargo.toml?ref=$GITHUB_REF_NAME" 2>/dev/null); then
+            manifest=Cargo.toml
+            version=$(grep -m1 '^version = ' <<<"$cargo" | cut -d'"' -f2)
+          else
+            echo "::error::Neither package.json nor Cargo.toml could be read at $GITHUB_REF_NAME."
+            exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match $manifest version (v$version)."
             exit 1
           fi
 
