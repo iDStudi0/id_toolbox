@@ -20,7 +20,7 @@ Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources Fiv
 "devDependencies": {
 	"@biomejs/biome": "^2.6.5",
 	"@types/bun": "^1.4.4",
-	"id_toolbox": "github:iDStudi0/id_toolbox#v3.2.0",
+	"id_toolbox": "github:iDStudi0/id_toolbox#v3.3.0",
 	"typescript": "^7.0.2"
 }
 ```
@@ -303,7 +303,7 @@ concurrency:
 jobs:
   checks:
     if: ${{ !github.event.pull_request.draft }}
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
       packages: read
@@ -333,7 +333,7 @@ concurrency:
 
 jobs:
   workflows-lint:
-    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/workflows-lint.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
 ```
@@ -356,14 +356,14 @@ concurrency:
 
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
       packages: read
 
   release:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: write
 ```
@@ -373,7 +373,7 @@ Une lib publiée sur GitHub Packages insère la publication entre les deux :
 ```yaml
 jobs:
   checks:
-    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/checks.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
       packages: read
@@ -382,14 +382,14 @@ jobs:
 
   publish:
     needs: checks
-    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/publish-package.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
       packages: write
 
   release:
     needs: publish
-    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/github-release.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: write
 ```
@@ -401,7 +401,7 @@ Une ressource FiveM vérifie sa version dans son propre job de release :
   with:
     persist-credentials: false
 
-- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+- uses: iDStudi0/id_toolbox/.github/actions/fivem-version-check@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
   with:
     tag: ${{ github.ref_name }}
 ```
@@ -411,7 +411,7 @@ Un projet Docker déployé sur un runner self-hosted construit ses images, dépl
 ```yaml
 jobs:
   build:
-    uses: iDStudi0/id_toolbox/.github/workflows/bake-push.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/bake-push.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       contents: read
       packages: write
@@ -432,7 +432,7 @@ jobs:
 
   prune:
     needs: deploy
-    uses: iDStudi0/id_toolbox/.github/workflows/ghcr-prune.yml@1afa4364d3ba17c472bec08befd6066ac0b0fbfe # v3.2.0
+    uses: iDStudi0/id_toolbox/.github/workflows/ghcr-prune.yml@32da6b87199997e1550648ece24d49d8ffedaefa # v3.3.0
     permissions:
       packages: write
     with:
