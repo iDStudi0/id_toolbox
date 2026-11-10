@@ -67,7 +67,7 @@ jobs:
           "$RUNNER_TEMP/actionlint" -color
 
       - name: zizmor
-        uses: zizmorcore/zizmor-action@v0.8.0
+        uses: zizmorcore/zizmor-action@v0.8.1
         with:
           advanced-security: false
           annotations: true
