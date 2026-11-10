@@ -17,8 +17,9 @@ on:
         required: false
 
 env:
-  ACTIONLINT_VERSION: 1.17.0
-  ZIZMOR_VERSION: 1.31.1
+  ACTIONLINT_VERSION: 1.17.1
+  ZIZMOR_VERSION: 1.32.0
+  GH_ACTIONS_LOCK_VERSION: 0.4.1
 
 jobs:
   workflows-lint:
@@ -32,20 +33,28 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Mint an installation token
         id: app-token
         if: ${{ inputs.private-repositories != '' }}
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@v3.3.0
         with:
           client-id: ${{ inputs.app-client-id }}
           private-key: ${{ secrets.app-private-key }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ inputs.private-repositories }}
           permission-contents: read
+
+      - name: gh actions-lock
+        if: ${{ hashFiles('.github/workflows/actions.lock') != '' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        run: |
+          gh extension install github/gh-actions-lock --pin "v${GH_ACTIONS_LOCK_VERSION}"
+          gh actions-lock --verify
 
       - name: actionlint
         env:
@@ -58,7 +67,7 @@ jobs:
           "$RUNNER_TEMP/actionlint" -color
 
       - name: zizmor
-        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        uses: zizmorcore/zizmor-action@v0.8.0
         with:
           advanced-security: false
           annotations: true

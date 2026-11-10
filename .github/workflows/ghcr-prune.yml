@@ -37,7 +37,7 @@ jobs:
     steps:
       # An age-based delete would drop the kept tags' untagged platform, provenance and SBOM manifests.
       - name: Prune old image versions
-        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        uses: dataaxiom/ghcr-cleanup-action@v1.2.2
         with:
           packages: ${{ inputs.packages }}
           keep-n-tagged: ${{ inputs.keep-n-tagged }}
@@ -46,7 +46,7 @@ jobs:
 
       - name: Prune the build cache
         if: ${{ inputs.cache-packages != '' }}
-        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        uses: dataaxiom/ghcr-cleanup-action@v1.2.2
         with:
           packages: ${{ inputs.cache-packages }}
           delete-untagged: true
