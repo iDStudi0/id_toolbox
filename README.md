@@ -25,7 +25,7 @@ Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources Fiv
 }
 ```
 
-`@biomejs/biome` (≥ 2.6.6, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
+`@biomejs/biome` (≥ 2.6.6, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : les presets `bun`, `nest` et `bot` déclarent `"types": ["bun"]` (globales Bun et Node, `bun:test`). Un projet qui définit son propre `types` remplace cette liste et doit y remettre `"bun"`.
 
 `biome.json`, identique partout sauf NestJS :
 
@@ -108,7 +108,6 @@ Comme un site Vite + React, avec `fivem-nui.json` à la place de `web.json` dans
 {
 	"extends": "./node_modules/id_toolbox/tsconfig/bun.json",
 	"compilerOptions": {
-		"types": ["bun"],
 		"paths": {
 			"@/*": ["./src/*"]
 		}
@@ -169,9 +168,6 @@ Deux contextes : le code navigateur (`web`) et `vite.config.ts`, exécuté par B
 ```json
 {
 	"extends": "./node_modules/id_toolbox/tsconfig/bun.json",
-	"compilerOptions": {
-		"types": ["bun"]
-	},
 	"include": ["vite.config.ts"]
 }
 ```
@@ -232,7 +228,7 @@ Les presets tsconfig, tous construits sur `tsconfig/base.json` :
 | `fivem-server` | FXServer, `node_version '22'`       | ES2024                    |                               |
 | `fivem-client` | client FiveM, V8 9.3 sans Node      | ES2022                    |                               |
 | `fivem-nui`    | CEF de FiveM, Chromium 144          | ES2025, DOM, DOM.Iterable | `web`                         |
-| `bun`          | Bun 1.4                             | ESNext                    |                               |
+| `bun`          | Bun 1.4                             | ESNext                    | `types: ["bun"]`              |
 | `nest`         | Bun 1.4                             | ESNext                    | décorateurs legacy + metadata |
 | `bot`          | Bun 1.4                             | ESNext                    | `nest` + `exactOptional…`     |
 | `web`          | navigateurs (cible Vite par défaut) | ES2023, DOM, DOM.Iterable | `jsx: react-jsx`              |
