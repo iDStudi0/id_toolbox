@@ -18,14 +18,14 @@ Outillage de dev partagé par les projets TypeScript d'iDStudio : ressources Fiv
 
 ```json
 "devDependencies": {
-	"@biomejs/biome": "^2.6.5",
+	"@biomejs/biome": "^2.6.6",
 	"@types/bun": "^1.4.4",
 	"id_toolbox": "github:iDStudi0/id_toolbox#v3.3.0",
 	"typescript": "^7.0.2"
 }
 ```
 
-`@biomejs/biome` (≥ 2.6.5, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
+`@biomejs/biome` (≥ 2.6.6, comme la peerDependency) et `typescript` restent des dépendances de chaque projet. `@types/bun` aussi, sauf pour un site Next.js : c'est lui qui fournit `"bun"` dans `types` et `bun:test`.
 
 `biome.json`, identique partout sauf NestJS :
 
