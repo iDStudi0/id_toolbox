@@ -8,6 +8,16 @@ on:
         required: false
         type: string
         default: '["ubuntu-slim"]'
+      package-dir:
+        description: "Directory holding the package.json or Cargo.toml the tag is checked against"
+        required: false
+        type: string
+        default: "."
+      tag-prefix:
+        description: "Tag prefix before the version"
+        required: false
+        type: string
+        default: "v"
 
 jobs:
   release:
@@ -23,8 +33,11 @@ jobs:
       - name: Check tag matches the manifest version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_DIR: ${{ inputs.package-dir }}
+          TAG_PREFIX: ${{ inputs.tag-prefix }}
         run: |
           contents="repos/$GITHUB_REPOSITORY/contents"
+          [ "$PACKAGE_DIR" = . ] || contents="$contents/$PACKAGE_DIR"
           raw="Accept: application/vnd.github.raw+json"
           if version=$(gh api -H "$raw" "$contents/package.json?ref=$GITHUB_REF_NAME" --jq .version 2>/dev/null); then
             manifest=package.json
@@ -35,8 +48,8 @@ jobs:
             echo "::error::Neither package.json nor Cargo.toml could be read at $GITHUB_REF_NAME."
             exit 1
           fi
-          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match $manifest version (v$version)."
+          if [ "$GITHUB_REF_NAME" != "$TAG_PREFIX$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match $manifest version ($TAG_PREFIX$version)."
             exit 1
           fi
 

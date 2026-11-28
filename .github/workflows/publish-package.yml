@@ -6,6 +6,12 @@ on:
       build:
         type: boolean
         default: true
+      package-dir:
+        type: string
+        default: "."
+      tag-prefix:
+        type: string
+        default: "v"
 
 jobs:
   publish:
@@ -25,10 +31,13 @@ jobs:
           persist-credentials: false
 
       - name: Check tag matches package.json version
+        env:
+          PACKAGE_DIR: ${{ inputs.package-dir }}
+          TAG_PREFIX: ${{ inputs.tag-prefix }}
         run: |
-          expected="v$(jq -r .version package.json)"
+          expected="$TAG_PREFIX$(jq -r .version "$PACKAGE_DIR/package.json")"
           if [ "$GITHUB_REF_NAME" != "$expected" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version ($expected)."
+            echo "::error::Tag $GITHUB_REF_NAME does not match $PACKAGE_DIR/package.json version ($expected)."
             exit 1
           fi
 
@@ -46,9 +55,11 @@ jobs:
 
       - name: Build
         if: ${{ inputs.build }}
+        working-directory: ${{ inputs.package-dir }}
         run: bun run build
 
       - name: Publish to GitHub Packages
+        working-directory: ${{ inputs.package-dir }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
