@@ -15,6 +15,9 @@ on:
       test-reports:
         type: boolean
         default: false
+      test-script:
+        type: boolean
+        default: false
       build:
         type: boolean
         default: false
@@ -73,7 +76,11 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' && inputs.test }}
         env:
           TEST_REPORTS: ${{ inputs.test-reports }}
+          TEST_SCRIPT: ${{ inputs.test-script }}
         run: |
+          if [ "$TEST_SCRIPT" = true ]; then
+            exec bun run tests
+          fi
           args=(--pass-with-no-tests)
           if [ "$TEST_REPORTS" = true ]; then
             mkdir -p reports
